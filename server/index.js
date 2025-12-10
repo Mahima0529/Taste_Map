@@ -1,0 +1,48 @@
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+require("dotenv").config();
+
+const authRoutes = require("./routes/auth");
+const postRoutes = require("./routes/posts");
+
+const { notFound, errorHandler } = require("./middleware/errorMiddleware"); // ⭐ ADD THIS HERE
+
+const app = express();
+
+// middlewares
+app.use(cors());
+app.use(express.json());
+
+// connect to MongoDB
+mongoose
+  .connect(process.env.MONGO_URI, { dbName: "campus_food_app" })
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch((err) => console.log("❌ MongoDB Error:", err));
+
+// test route
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "Backend is running and MongoDB connected! 🎉",
+  });
+});
+
+// ⭐ ROUTES
+app.use("/api/auth", authRoutes);
+app.use("/api/posts", postRoutes);
+
+const commentRoutes = require("./routes/comments");
+app.use("/api/comments", commentRoutes);
+
+
+// ⭐ ADD ERROR HANDLER MIDDLEWARE *AFTER ROUTES*
+app.use(notFound);
+app.use(errorHandler);
+
+// start server
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server started on http://localhost:${PORT}`);
+});
