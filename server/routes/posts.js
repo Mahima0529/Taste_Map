@@ -9,12 +9,31 @@ router.get("/test", (req, res) => {
   res.json({ message: "Posts route working!" });
 });
 
-// PUBLIC
-router.get("/", postController.getAllPosts);
+/* ------------------------
+   IMPORTANT: SPECIFIC ROUTES FIRST
+-------------------------*/
+
+// FEED route must be BEFORE "/:id"
+router.get("/feed", authMiddleware, postController.getFeed);
+
+// Search must also be before "/:id"
 router.get("/search", postController.searchPosts);
+
+// GET all posts (public)
+router.get("/", postController.getAllPosts);
+router.post("/:id/save", authMiddleware, postController.savePost);
+router.post("/:id/unsave", authMiddleware, postController.unsavePost);
+router.get("/saved/me", authMiddleware, postController.getSavedPosts);
+
+
+/* ------------------------
+   ROUTES THAT USE :id 
+-------------------------*/
+
+// Get single post by id
 router.get("/:id", postController.getPostById);
 
-// LOGGED-IN USER ROUTES
+// Logged-in user routes
 router.get("/user/me", authMiddleware, postController.getMyPosts);
 router.post("/", authMiddleware, postController.createPost);
 router.put("/:id", authMiddleware, postController.updatePost);

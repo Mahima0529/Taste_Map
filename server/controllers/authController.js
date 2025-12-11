@@ -1,15 +1,17 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Location = require("../models/Location"); // ensure this model exists
 require("dotenv").config();
 
 // POST /api/auth/register
+// POST /api/auth/register
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, avatarUrl } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "Name, email and password are required" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -23,6 +25,8 @@ exports.register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      avatarUrl: avatarUrl || null,
+      location: null, // no location at registration
     });
 
     const token = jwt.sign(
@@ -31,14 +35,19 @@ exports.register = async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    // return user without password and without populating location (it's null)
+    const safeUser = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      location: user.location,
+    };
+
     res.status(201).json({
       message: "User registered successfully",
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      user: safeUser,
     });
   } catch (err) {
     console.error("Register error:", err);
@@ -78,6 +87,8 @@ exports.login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        avatarUrl: user.avatarUrl,
+        location: user.location,
       },
     });
   } catch (err) {

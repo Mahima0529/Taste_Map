@@ -1,79 +1,44 @@
+// server/models/Post.js
 const mongoose = require("mongoose");
 
 const PostSchema = new mongoose.Schema(
   {
+    foodName: { type: String, required: true },
+    stallName: { type: String, default: "" },
+    description: { type: String, default: "" },
+    category: { type: String, default: "" },
+    tags: [{ type: String }],
+
+    imageUrl: { type: String, required: true },
+
+    // optional fields
+    rating: { type: Number, default: null },
+    priceRange: { type: String, default: "" },
+
+    // location info: reference to Location and free-text & coords
+    location: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Location",
+      default: null,
+    },
+    locationText: { type: String, default: "" },
+    latitude: { type: Number, default: null },
+    longitude: { type: Number, default: null },
+
+    // who posted
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true, // who uploaded this post
+      required: true,
     },
 
-    // 🥟 FOOD INFO
-    foodName: {
-      type: String,
-      required: true, // e.g. "Veg Momos"
-    },
-
-    stallName: {
-      type: String,   // e.g. "Sharma Momos"
-    },
-
-    description: {
-      type: String,   // extra info user wants to share
-    },
-
-    category: {
-      type: String,   // e.g. "momos", "pizza", "cafe"
-    },
-
-    tags: [
-      {
-        type: String, // e.g. ["spicy", "cheap", "street-food"]
-      },
-    ],
-
-    // 📍 LOCATION INFO
-    locationText: {
-      type: String,
-      required: true, // e.g. "Outside Gate 2 near ABC Hostel"
-    },
-
-    latitude: {
-      type: Number,   // optional map coordinate
-    },
-    longitude: {
-      type: Number,   // optional map coordinate
-    },
-
-    // 🖼️ IMAGE
-    imageUrl: {
-      type: String,
-      required: true, // URL of the uploaded photo
-    },
-
-    // ⭐ RATING + PRICE
-    rating: {
-      type: Number,
-      min: 1,
-      max: 5,
-    },
-
-    priceRange: {
-      type: String,   // e.g. "₹50–80"
-    },
-
-    // 👍 LIKES / UPVOTES
-    likes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",  // users who liked this post
-      },
-    ],
+    // likes stored as array of user ids
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
-  { timestamps: true } // createdAt, updatedAt
+  { timestamps: true }
 );
 
-// 🔍 SEARCH INDEX: food, stall, category, tags, location
+// Optional: text index to support search across fields
 PostSchema.index({
   foodName: "text",
   stallName: "text",
